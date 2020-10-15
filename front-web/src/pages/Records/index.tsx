@@ -5,16 +5,22 @@ import { RecordsResponse } from './types';
 import { formatDate } from './helpers';
 import Pagination from './Pagination';
 import Filters from '../../components/Filters'
+import RecordsLoader from './components/Loaders';
 
 const BASE_URL = 'https://sds1-gabriel-aguiar.herokuapp.com';
 
 const Records = () => {
     const [recordsResponse, setRecordResponse] = useState<RecordsResponse>();
+    const [isLoading, setIsLoading] = useState (false);
     const [activePage, setActivePage] = useState(0);
 
     useEffect(() => {
+        setIsLoading(true);
         axios.get(`${BASE_URL}/records?linesPerPage=12&page=${activePage}`)
-            .then(response => setRecordResponse(response.data));
+            .then(response => setRecordResponse(response.data))
+            .finally(() => {
+                setIsLoading(false);
+            })
     }, [activePage]);
 
     const handlePageChange = (index: number) => {
@@ -24,6 +30,7 @@ const Records = () => {
     return (
         <div className="page-container">
             <Filters link={"/charts"} linkText="VER GRÁFICOS"/>
+            {isLoading ?  <RecordsLoader /> : (
             <table className="records-table" cellPadding="0" cellSpacing="0">
                 <thead>
                     <tr>
@@ -37,6 +44,7 @@ const Records = () => {
                 </thead>
 
                 <tbody>
+                    
                     {recordsResponse?.content.map(record => (
                         <tr key={record.id}>
                             <td>{formatDate(record.moment)}</td>
@@ -49,6 +57,7 @@ const Records = () => {
                     ))}
                 </tbody>
             </table>
+            )}
             <Pagination
                 activePage={activePage}
                 goToPage={handlePageChange}
